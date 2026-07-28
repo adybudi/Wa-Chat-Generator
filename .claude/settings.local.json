@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(lsof -i :5173 -sTCP:LISTEN)",
+      "Bash(ps -p 76543 -o pid,ppid,command)",
+      "Bash(kill 76543)",
+      "Bash(npm uninstall *)",
+      "Bash(xargs -r kill)",
+      "Bash(curl -s \"http://localhost:5173/src/components/FakeWhatsAppChatGenerator.jsx\")",
+      "Bash(pip3 install *)",
+      "Bash(python3 -c ' *)",
+      "Bash(cat > *)"
+    ]
+  }
+}
