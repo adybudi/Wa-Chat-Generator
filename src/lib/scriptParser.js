@@ -54,6 +54,7 @@ export function linesToMessages(lines, roleMap) {
   return lines.map((line, index) =>
     newMessage({
       sender: roleMap[line.label] || 'other',
+      senderName: line.label,
       text: line.text,
       time: times[index],
     }),

@@ -8,6 +8,7 @@ export default function MessageEditorList({
   messages,
   onUpdateText,
   onChangeSender,
+  onUpdateSenderName,
   onUpdateTime,
   onDelete,
   onAdd,
@@ -28,41 +29,55 @@ export default function MessageEditorList({
           {messages.map((msg) => (
             <li
               key={msg.id}
-              className="flex items-start gap-2 rounded-lg border border-gray-100 p-2"
+              className="flex flex-col gap-1.5 rounded-lg border border-gray-100 p-2"
             >
-              <select
-                value={msg.sender}
-                onChange={(e) => onChangeSender(msg.id, e.target.value)}
-                title="Ganti pengirim/penerima/situasi"
-                className={`mt-0.5 shrink-0 rounded-full border-none px-2 py-1 text-[10px] font-semibold uppercase transition focus:outline-none focus:ring-1 focus:ring-[#128c7e] ${SENDER_STYLE[msg.sender] || SENDER_STYLE.other}`}
-              >
-                <option value="other">Other</option>
-                <option value="me">Me</option>
-                <option value="system">Situasi</option>
-              </select>
+              <div className="flex items-center gap-2">
+                <select
+                  value={msg.sender}
+                  onChange={(e) => onChangeSender(msg.id, e.target.value)}
+                  title="Ganti pengirim/penerima/situasi"
+                  className={`shrink-0 rounded-full border-none px-2 py-0.5 text-[10px] font-semibold uppercase transition focus:outline-none focus:ring-1 focus:ring-[#128c7e] ${SENDER_STYLE[msg.sender] || SENDER_STYLE.other}`}
+                >
+                  <option value="other">Other</option>
+                  <option value="me">Me</option>
+                  <option value="system">Situasi</option>
+                </select>
+
+                {msg.sender === 'other' && (
+                  <input
+                    type="text"
+                    value={msg.senderName || ''}
+                    onChange={(e) => onUpdateSenderName?.(msg.id, e.target.value)}
+                    placeholder="Nama Pembicara"
+                    className="w-28 rounded-md border border-gray-200 px-2 py-0.5 text-xs text-gray-700 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
+                  />
+                )}
+
+                <div className="flex-1" />
+
+                <input
+                  type="text"
+                  value={msg.time}
+                  onChange={(e) => onUpdateTime(msg.id, e.target.value)}
+                  className="w-14 rounded-md border border-gray-200 px-1 py-0.5 text-center text-xs text-gray-500 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
+                />
+
+                <button
+                  type="button"
+                  title="Hapus pesan"
+                  onClick={() => onDelete(msg.id)}
+                  className="rounded-md px-1.5 py-0.5 text-xs text-red-400 transition hover:bg-red-50 hover:text-red-600"
+                >
+                  ✕
+                </button>
+              </div>
 
               <textarea
                 value={msg.text}
                 onChange={(e) => onUpdateText(msg.id, e.target.value)}
                 rows={1}
-                className="min-h-[32px] flex-1 resize-none rounded-md border border-gray-200 px-2 py-1 text-sm text-gray-800 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
+                className="min-h-[32px] w-full resize-none rounded-md border border-gray-200 px-2 py-1 text-sm text-gray-800 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
               />
-
-              <input
-                type="text"
-                value={msg.time}
-                onChange={(e) => onUpdateTime(msg.id, e.target.value)}
-                className="mt-0.5 w-14 shrink-0 rounded-md border border-gray-200 px-1 py-1 text-center text-xs text-gray-500 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
-              />
-
-              <button
-                type="button"
-                title="Hapus pesan"
-                onClick={() => onDelete(msg.id)}
-                className="mt-0.5 shrink-0 rounded-md px-2 py-1 text-xs text-red-400 transition hover:bg-red-50 hover:text-red-600"
-              >
-                ✕
-              </button>
             </li>
           ))}
         </ul>

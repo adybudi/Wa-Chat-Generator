@@ -11,6 +11,8 @@ export default function TikTokTemplateModal({
   synopsisText,
   pages,
   contactName,
+  groupName,
+  chatMode,
 }) {
   const [isLoadingPreview, setIsLoadingPreview] = useState(true)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -155,6 +157,8 @@ export default function TikTokTemplateModal({
                     }}
                     type="chat"
                     contactName={contactName}
+                    groupName={groupName}
+                    chatMode={chatMode}
                     messages={pageMessages}
                   />
                 </div>

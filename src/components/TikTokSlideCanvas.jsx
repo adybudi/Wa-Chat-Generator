@@ -28,7 +28,7 @@ function CloudWatermark() {
 }
 
 const TikTokSlideCanvas = forwardRef(function TikTokSlideCanvas(
-  { type, coverData, synopsisText, messages, contactName },
+  { type, coverData, synopsisText, messages, contactName, groupName, chatMode },
   ref,
 ) {
   return (
@@ -96,7 +96,12 @@ const TikTokSlideCanvas = forwardRef(function TikTokSlideCanvas(
 
       {type === 'chat' && (
         <div className="flex h-full w-full items-center justify-center">
-          <PhoneMockup contactName={contactName} messages={messages} />
+          <PhoneMockup
+            contactName={contactName}
+            groupName={groupName}
+            chatMode={chatMode}
+            messages={messages}
+          />
         </div>
       )}
     </div>

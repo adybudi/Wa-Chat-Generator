@@ -1,4 +1,5 @@
 import { forwardRef } from 'react'
+import { getSpeakerColor } from '../lib/chatUtils'
 
 const WALLPAPER_STYLE = {
   backgroundColor: '#e5ddd5',
@@ -52,6 +53,14 @@ function PersonIcon() {
   )
 }
 
+function GroupIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+    </svg>
+  )
+}
+
 function PlusIcon() {
   return (
     <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -99,7 +108,7 @@ function BatteryIcon() {
   )
 }
 
-function Bubble({ message }) {
+function Bubble({ message, chatMode }) {
   if (message.sender === 'system') {
     return (
       <div className="flex justify-center px-6 py-1">
@@ -114,6 +123,10 @@ function Bubble({ message }) {
   }
 
   const isMe = message.sender === 'me'
+  const isGroup = chatMode === 'group'
+  const speakerName = message.senderName || 'Contact'
+  const speakerColor = getSpeakerColor(speakerName)
+
   return (
     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
       <div
@@ -122,6 +135,14 @@ function Bubble({ message }) {
         }`}
         style={{ color: GRAY_800, boxShadow: SHADOW_SM }}
       >
+        {!isMe && isGroup && speakerName && (
+          <span
+            className="mb-0.5 block text-[11px] font-semibold leading-tight"
+            style={{ color: speakerColor }}
+          >
+            {speakerName}
+          </span>
+        )}
         <p className="whitespace-pre-wrap break-words pr-2">{message.text}</p>
         <div className="mt-1 flex items-center justify-end gap-1">
           <span className="text-[10.5px] leading-none" style={{ color: GRAY_500 }}>
@@ -137,9 +158,12 @@ function Bubble({ message }) {
 }
 
 const PhoneMockup = forwardRef(function PhoneMockup(
-  { contactName, messages },
+  { contactName, groupName, chatMode = 'personal', messages },
   ref,
 ) {
+  const isGroup = chatMode === 'group'
+  const title = isGroup ? (groupName || 'Grup Percakapan') : (contactName || 'Contact')
+
   return (
     <div
       ref={ref}
@@ -169,16 +193,23 @@ const PhoneMockup = forwardRef(function PhoneMockup(
         </button>
         <div
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-          style={{ backgroundColor: GRAY_300, color: GRAY_500 }}
+          style={{ backgroundColor: isGroup ? '#128c7e' : GRAY_300, color: isGroup ? '#ffffff' : GRAY_500 }}
         >
-          <PersonIcon />
+          {isGroup ? <GroupIcon /> : <PersonIcon />}
         </div>
-        <h2
-          className="min-w-0 flex-1 truncate text-[17px] font-semibold"
-          style={{ lineHeight: 1.8, paddingTop: 5 }}
-        >
-          {contactName || 'Contact'}
-        </h2>
+        <div className="min-w-0 flex-1 truncate pt-1">
+          <h2
+            className="truncate text-[16px] font-semibold leading-tight"
+            style={{ color: GRAY_800 }}
+          >
+            {title}
+          </h2>
+          {isGroup && (
+            <p className="truncate text-[10px]" style={{ color: GRAY_500 }}>
+              Anda, {contactName || 'Anna'}, Rey, Warga...
+            </p>
+          )}
+        </div>
         <button
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white"
           style={{ boxShadow: SHADOW_SM }}
@@ -203,7 +234,7 @@ const PhoneMockup = forwardRef(function PhoneMockup(
             Belum ada pesan
           </p>
         ) : (
-          messages.map((msg) => <Bubble key={msg.id} message={msg} />)
+          messages.map((msg) => <Bubble key={msg.id} message={msg} chatMode={chatMode} />)
         )}
       </div>
 
@@ -225,3 +256,4 @@ const PhoneMockup = forwardRef(function PhoneMockup(
 })
 
 export default PhoneMockup
+

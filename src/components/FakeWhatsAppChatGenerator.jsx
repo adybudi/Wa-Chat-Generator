@@ -12,6 +12,8 @@ import { paginateMessages } from '../lib/pagination'
 
 export default function FakeWhatsAppChatGenerator() {
   const [contactName, setContactName] = useState('Anna')
+  const [groupName, setGroupName] = useState('Grup Percakapan')
+  const [chatMode, setChatMode] = useState('personal') // 'personal' | 'group'
   const [messages, setMessages] = useState([])
 
   const [storyPrompt, setStoryPrompt] = useState('')
@@ -40,9 +42,13 @@ export default function FakeWhatsAppChatGenerator() {
       const times = makeTimeSequence(lines.length)
       // First detected label -> receiver ("other"), second -> sender ("me").
       const labelOrder = [...new Set(lines.map((l) => l.label))]
+      if (labelOrder.length > 2) {
+        setChatMode('group')
+      }
       const generated = lines.map((line, index) =>
         newMessage({
           sender: labelOrder.indexOf(line.label) === 1 ? 'me' : 'other',
+          senderName: line.label,
           text: line.text,
           time: times[index],
         }),
@@ -56,11 +62,19 @@ export default function FakeWhatsAppChatGenerator() {
   }
 
   const handleScriptConvert = (newMessages) => {
+    const distinctSpeakers = [...new Set(newMessages.map((m) => m.senderName).filter(Boolean))]
+    if (distinctSpeakers.length > 2) {
+      setChatMode('group')
+    }
     setMessages(newMessages)
   }
 
   const updateMessageText = (id, text) => {
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, text } : m)))
+  }
+
+  const updateMessageSenderName = (id, senderName) => {
+    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, senderName } : m)))
   }
 
   const updateMessageTime = (id, time) => {
@@ -76,7 +90,7 @@ export default function FakeWhatsAppChatGenerator() {
   }
 
   const addMessage = () => {
-    setMessages((prev) => [...prev, newMessage({ sender: 'other', text: 'Pesan baru' })])
+    setMessages((prev) => [...prev, newMessage({ sender: 'other', senderName: 'Teman', text: 'Pesan baru' })])
   }
 
   const handleDownload = async () => {
@@ -113,17 +127,78 @@ export default function FakeWhatsAppChatGenerator() {
       <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 p-6 lg:grid-cols-[420px_1fr]">
         {/* Left column: controls */}
         <div className="space-y-4">
+          {/* Mode Switcher */}
           <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <label className="mb-1 block text-sm font-semibold text-gray-800">
-              Nama Kontak
+            <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
+              Tipe Percakapan
             </label>
-            <input
-              type="text"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              placeholder="Anna"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
-            />
+
+            <div className="mb-4 grid grid-cols-2 gap-1.5 rounded-lg border border-gray-200 bg-gray-50 p-1">
+              <button
+                type="button"
+                onClick={() => setChatMode('personal')}
+                className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition ${
+                  chatMode === 'personal'
+                    ? 'bg-white text-[#075e54] shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                <span>💬 Personal (1-on-1)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setChatMode('group')}
+                className={`flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-semibold transition ${
+                  chatMode === 'group'
+                    ? 'bg-[#075e54] text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
+                }`}
+              >
+                <span>👥 Grup WhatsApp</span>
+              </button>
+            </div>
+
+            {chatMode === 'personal' ? (
+              <div>
+                <label className="mb-1 block text-xs font-semibold text-gray-700">
+                  Nama Kontak (Penerima)
+                </label>
+                <input
+                  type="text"
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  placeholder="Anna"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
+                />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                    Nama Grup WA
+                  </label>
+                  <input
+                    type="text"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    placeholder="Grup Percakapan"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-semibold text-gray-700">
+                    Nama Anggota Utama
+                  </label>
+                  <input
+                    type="text"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                    placeholder="Anna"
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-[#128c7e] focus:outline-none focus:ring-1 focus:ring-[#128c7e]"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           <TikTokTemplateConfig
@@ -150,6 +225,7 @@ export default function FakeWhatsAppChatGenerator() {
           <MessageEditorList
             messages={messages}
             onUpdateText={updateMessageText}
+            onUpdateSenderName={updateMessageSenderName}
             onUpdateTime={updateMessageTime}
             onChangeSender={changeSender}
             onDelete={deleteMessage}
@@ -171,6 +247,8 @@ export default function FakeWhatsAppChatGenerator() {
                   pageRefs.current[index] = el
                 }}
                 contactName={contactName}
+                groupName={groupName}
+                chatMode={chatMode}
                 messages={pageMessages}
               />
             </div>
@@ -210,6 +288,8 @@ export default function FakeWhatsAppChatGenerator() {
         synopsisText={synopsisText}
         pages={pages}
         contactName={contactName}
+        groupName={groupName}
+        chatMode={chatMode}
       />
     </div>
   )
