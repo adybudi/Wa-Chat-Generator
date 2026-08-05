@@ -4,6 +4,8 @@ import StoryToChatPanel from './StoryToChatPanel'
 import ScriptImportPanel from './ScriptImportPanel'
 import MessageEditorList from './MessageEditorList'
 import PhoneMockup from './PhoneMockup'
+import TikTokTemplateConfig from './TikTokTemplateConfig'
+import TikTokTemplateModal from './TikTokTemplateModal'
 import { generateChatFromStory } from '../lib/aiGenerator'
 import { newMessage, makeTimeSequence } from '../lib/chatUtils'
 import { paginateMessages } from '../lib/pagination'
@@ -17,6 +19,15 @@ export default function FakeWhatsAppChatGenerator() {
   const [generateError, setGenerateError] = useState('')
 
   const [isDownloading, setIsDownloading] = useState(false)
+
+  // TikTok Template State
+  const [coverTitle, setCoverTitle] = useState('TAMAN WISATA BERHANTU')
+  const [coverSubtitle, setCoverSubtitle] = useState('EPISODE ENAM')
+  const [coverImage, setCoverImage] = useState(null)
+  const [synopsisText, setSynopsisText] = useState(
+    'Wahana terakhir adalah Bianglala Raksasa yang menjulang tinggi menembus kabut. Mereka harus mencapai kabin tertinggi untuk mengambil kunci gerbang utama yang tergantung di poros paling atas. Angin kencang dan besi yang keropos menjadi rintangan fisik terbesar mereka.',
+  )
+  const [isTikTokModalOpen, setIsTikTokModalOpen] = useState(false)
 
   const pages = useMemo(() => paginateMessages(messages), [messages])
   const pageRefs = useRef({})
@@ -115,6 +126,17 @@ export default function FakeWhatsAppChatGenerator() {
             />
           </div>
 
+          <TikTokTemplateConfig
+            coverTitle={coverTitle}
+            setCoverTitle={setCoverTitle}
+            coverSubtitle={coverSubtitle}
+            setCoverSubtitle={setCoverSubtitle}
+            coverImage={coverImage}
+            setCoverImage={setCoverImage}
+            synopsisText={synopsisText}
+            setSynopsisText={setSynopsisText}
+          />
+
           <StoryToChatPanel
             storyPrompt={storyPrompt}
             onStoryPromptChange={setStoryPrompt}
@@ -154,20 +176,42 @@ export default function FakeWhatsAppChatGenerator() {
             </div>
           ))}
 
-          <button
-            type="button"
-            onClick={handleDownload}
-            disabled={isDownloading || messages.length === 0}
-            className="rounded-lg bg-[#128c7e] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#0f7669] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isDownloading
-              ? 'Menyiapkan gambar…'
-              : pages.length > 1
-                ? `⬇ Download ${pages.length} Halaman`
-                : '⬇ Download Chat Image'}
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={isDownloading || messages.length === 0}
+              className="rounded-lg bg-[#128c7e] px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#0f7669] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isDownloading
+                ? 'Menyiapkan gambar…'
+                : pages.length > 1
+                  ? `⬇ Download ${pages.length} Halaman`
+                  : '⬇ Download Chat Image'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsTikTokModalOpen(true)}
+              className="rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-md transition hover:from-purple-700 hover:to-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              ✨ Generate Template
+            </button>
+          </div>
         </div>
       </main>
+
+      <TikTokTemplateModal
+        isOpen={isTikTokModalOpen}
+        onClose={() => setIsTikTokModalOpen(false)}
+        coverTitle={coverTitle}
+        coverSubtitle={coverSubtitle}
+        coverImage={coverImage}
+        synopsisText={synopsisText}
+        pages={pages}
+        contactName={contactName}
+      />
     </div>
   )
 }
+

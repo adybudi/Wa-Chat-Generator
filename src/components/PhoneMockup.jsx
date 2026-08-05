@@ -143,7 +143,7 @@ const PhoneMockup = forwardRef(function PhoneMockup(
   return (
     <div
       ref={ref}
-      className="mx-auto flex w-[320px] flex-col overflow-hidden shadow-xl"
+      className="mx-auto flex w-[320px] flex-col overflow-hidden rounded-xl border border-gray-300/50"
       style={{ ...WALLPAPER_STYLE, height: 660 }}
     >
       {/* Status bar */}
