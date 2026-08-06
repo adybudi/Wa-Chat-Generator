@@ -13,6 +13,12 @@ export default function TikTokTemplateModal({
   contactName,
   groupName,
   chatMode,
+  enableDarkMode,
+  enableCustomTicks,
+  enableCustomStatusBar,
+  headerStatusText,
+  statusBarTime,
+  batteryLevel,
 }) {
   const [isLoadingPreview, setIsLoadingPreview] = useState(true)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -159,6 +165,12 @@ export default function TikTokTemplateModal({
                     contactName={contactName}
                     groupName={groupName}
                     chatMode={chatMode}
+                    enableDarkMode={enableDarkMode}
+                    enableCustomTicks={enableCustomTicks}
+                    enableCustomStatusBar={enableCustomStatusBar}
+                    headerStatusText={headerStatusText}
+                    statusBarTime={statusBarTime}
+                    batteryLevel={batteryLevel}
                     messages={pageMessages}
                   />
                 </div>

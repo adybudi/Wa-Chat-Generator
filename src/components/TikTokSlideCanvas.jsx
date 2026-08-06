@@ -28,7 +28,21 @@ function CloudWatermark() {
 }
 
 const TikTokSlideCanvas = forwardRef(function TikTokSlideCanvas(
-  { type, coverData, synopsisText, messages, contactName, groupName, chatMode },
+  {
+    type,
+    coverData,
+    synopsisText,
+    messages,
+    contactName,
+    groupName,
+    chatMode,
+    enableDarkMode,
+    enableCustomTicks,
+    enableCustomStatusBar,
+    headerStatusText,
+    statusBarTime,
+    batteryLevel,
+  },
   ref,
 ) {
   return (
@@ -101,6 +115,12 @@ const TikTokSlideCanvas = forwardRef(function TikTokSlideCanvas(
             groupName={groupName}
             chatMode={chatMode}
             messages={messages}
+            enableDarkMode={enableDarkMode}
+            enableCustomTicks={enableCustomTicks}
+            enableCustomStatusBar={enableCustomStatusBar}
+            headerStatusText={headerStatusText}
+            statusBarTime={statusBarTime}
+            batteryLevel={batteryLevel}
           />
         </div>
       )}

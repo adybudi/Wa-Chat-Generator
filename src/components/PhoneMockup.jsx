@@ -1,13 +1,6 @@
 import { forwardRef } from 'react'
 import { getSpeakerColor } from '../lib/chatUtils'
 
-const WALLPAPER_STYLE = {
-  backgroundColor: '#e5ddd5',
-  backgroundImage:
-    'repeating-linear-gradient(45deg, rgba(0,0,0,0.025) 0px, rgba(0,0,0,0.025) 1px, transparent 1px, transparent 14px), ' +
-    'repeating-linear-gradient(-45deg, rgba(0,0,0,0.025) 0px, rgba(0,0,0,0.025) 1px, transparent 1px, transparent 14px)',
-}
-
 // Plain hex/rgba only below — Tailwind v4's default palette (gray-*, shadow-sm,
 // bg-white/NN, etc.) compiles to oklch()/color-mix(), which html2canvas-pro
 // renders inconsistently (misaligned boxes/shadows in the exported PNG even
@@ -16,7 +9,6 @@ const SHADOW_SM = '0 1px 2px 0 rgba(0,0,0,0.05)'
 const GRAY_300 = '#d1d5db'
 const GRAY_400 = '#9ca3af'
 const GRAY_500 = '#6b7280'
-const GRAY_700 = '#374151'
 const GRAY_800 = '#1f2937'
 
 function BackIcon() {
@@ -108,13 +100,24 @@ function BatteryIcon() {
   )
 }
 
-function Bubble({ message, chatMode }) {
+function TickIcon({ status = 'read' }) {
+  if (status === 'pending') return <span className="text-[10px] text-gray-400">🕒</span>
+  if (status === 'sent') return <span className="text-[12px] leading-none text-gray-400">✓</span>
+  if (status === 'delivered') return <span className="text-[12px] leading-none text-gray-400">✓✓</span>
+  return <span className="text-[12px] leading-none text-[#53bdeb]">✓✓</span>
+}
+
+function Bubble({ message, chatMode, isDark }) {
   if (message.sender === 'system') {
     return (
       <div className="flex justify-center px-6 py-1">
         <div
           className="max-w-[85%] rounded-lg px-3 py-1.5 text-center text-[11px] leading-snug"
-          style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: GRAY_500, boxShadow: SHADOW_SM }}
+          style={{
+            backgroundColor: isDark ? 'rgba(30,42,49,0.95)' : 'rgba(255,255,255,0.9)',
+            color: isDark ? '#8696a0' : GRAY_500,
+            boxShadow: SHADOW_SM,
+          }}
         >
           {message.text}
         </div>
@@ -127,13 +130,22 @@ function Bubble({ message, chatMode }) {
   const speakerName = message.senderName || 'Contact'
   const speakerColor = getSpeakerColor(speakerName)
 
+  // Dark Mode Bubble Colors
+  const meBg = isDark ? '#005c4b' : '#dcf8c6'
+  const otherBg = isDark ? '#202c33' : '#ffffff'
+  const textColor = isDark ? '#e9edef' : GRAY_800
+
   return (
     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`relative max-w-[80%] rounded-lg px-3 pt-2 pb-1.5 text-[14px] ${
-          isMe ? 'rounded-tr-none bg-[#dcf8c6]' : 'rounded-tl-none bg-white'
+          isMe ? 'rounded-tr-none' : 'rounded-tl-none'
         }`}
-        style={{ color: GRAY_800, boxShadow: SHADOW_SM }}
+        style={{
+          backgroundColor: isMe ? meBg : otherBg,
+          color: textColor,
+          boxShadow: SHADOW_SM,
+        }}
       >
         {!isMe && isGroup && speakerName && (
           <span
@@ -143,14 +155,46 @@ function Bubble({ message, chatMode }) {
             {speakerName}
           </span>
         )}
-        <p className="whitespace-pre-wrap break-words pr-2">{message.text}</p>
+
+        {/* Media Types */}
+        {message.mediaType === 'image' ? (
+          <div className="space-y-1.5 py-0.5">
+            {message.mediaUrl ? (
+              <img
+                src={message.mediaUrl}
+                alt="Media"
+                className="max-h-48 w-full rounded-md object-cover"
+              />
+            ) : (
+              <div className="flex h-32 w-48 items-center justify-center rounded-md bg-gray-200 text-xs text-gray-500">
+                🖼️ Foto Chat
+              </div>
+            )}
+            {message.text && (
+              <p className="whitespace-pre-wrap break-words pr-2 text-[14px]">{message.text}</p>
+            )}
+          </div>
+        ) : message.mediaType === 'audio' ? (
+          <div className="flex items-center gap-3 py-1 pr-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#00a884] text-white">
+              ▶
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="h-1.5 w-28 rounded-full bg-gray-300 overflow-hidden">
+                <div className="h-full w-2/5 bg-[#00a884]" />
+              </div>
+              <span className="text-[10px] text-gray-400">{message.audioDuration || '0:15'}</span>
+            </div>
+          </div>
+        ) : (
+          <p className="whitespace-pre-wrap break-words pr-2">{message.text}</p>
+        )}
+
         <div className="mt-1 flex items-center justify-end gap-1">
-          <span className="text-[10.5px] leading-none" style={{ color: GRAY_500 }}>
+          <span className="text-[10.5px] leading-none" style={{ color: isDark ? '#8696a0' : GRAY_500 }}>
             {message.time}
           </span>
-          {isMe && (
-            <span className="text-[12px] leading-none text-[#53bdeb]">✓✓</span>
-          )}
+          {isMe && <TickIcon status={message.statusTick || 'read'} />}
         </div>
       </div>
     </div>
@@ -158,92 +202,132 @@ function Bubble({ message, chatMode }) {
 }
 
 const PhoneMockup = forwardRef(function PhoneMockup(
-  { contactName, groupName, chatMode = 'personal', messages },
+  {
+    contactName,
+    groupName,
+    chatMode = 'personal',
+    messages,
+    enableDarkMode = false,
+    enableCustomTicks = false,
+    enableCustomStatusBar = false,
+    headerStatusText = '',
+    statusBarTime = '10:04',
+    batteryLevel = '100',
+  },
   ref,
 ) {
   const isGroup = chatMode === 'group'
   const title = isGroup ? (groupName || 'Grup Percakapan') : (contactName || 'Contact')
 
+  const bgColor = enableDarkMode ? '#0b141a' : '#e5ddd5'
+  const headerBg = enableDarkMode ? '#1f2c34' : 'transparent'
+  const headerTextColor = enableDarkMode ? '#e9edef' : GRAY_800
+  const headerSubColor = enableDarkMode ? '#8696a0' : GRAY_500
+
   return (
     <div
       ref={ref}
       className="mx-auto flex w-[320px] flex-col overflow-hidden rounded-xl border border-gray-300/50"
-      style={{ ...WALLPAPER_STYLE, height: 660 }}
+      style={{
+        backgroundColor: bgColor,
+        backgroundImage: enableDarkMode
+          ? 'none'
+          : 'repeating-linear-gradient(45deg, rgba(0,0,0,0.025) 0px, rgba(0,0,0,0.025) 1px, transparent 1px, transparent 14px), repeating-linear-gradient(-45deg, rgba(0,0,0,0.025) 0px, rgba(0,0,0,0.025) 1px, transparent 1px, transparent 14px)',
+        height: 660,
+      }}
     >
       {/* Status bar */}
       <div
         className="flex items-center justify-between px-4 pt-2 pb-1 text-[13px] font-semibold"
-        style={{ color: GRAY_800 }}
+        style={{ color: headerTextColor, backgroundColor: headerBg }}
       >
-        <span>10:04</span>
+        <span>{enableCustomStatusBar ? statusBarTime : '10:04'}</span>
         <div className="flex items-center gap-1">
           <SignalIcon />
           <span className="text-[10px] font-bold">5G</span>
-          <BatteryIcon />
+          {enableCustomStatusBar ? (
+            <span className="text-[10px] font-bold">{batteryLevel}%</span>
+          ) : (
+            <BatteryIcon />
+          )}
         </div>
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-2.5 px-3 pb-3 pt-1" style={{ color: GRAY_800 }}>
+      <div
+        className="flex items-center gap-2.5 px-3 pb-3 pt-1 border-b border-black/5"
+        style={{ color: headerTextColor, backgroundColor: headerBg }}
+      >
         <button
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white"
-          style={{ boxShadow: SHADOW_SM }}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+          style={{ backgroundColor: enableDarkMode ? '#2a3942' : 'white', boxShadow: SHADOW_SM }}
         >
           <BackIcon />
         </button>
         <div
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-          style={{ backgroundColor: isGroup ? '#128c7e' : GRAY_300, color: isGroup ? '#ffffff' : GRAY_500 }}
+          style={{
+            backgroundColor: isGroup ? '#128c7e' : (enableDarkMode ? '#6b7280' : GRAY_300),
+            color: isGroup ? '#ffffff' : (enableDarkMode ? '#e9edef' : GRAY_500),
+          }}
         >
           {isGroup ? <GroupIcon /> : <PersonIcon />}
         </div>
-        <div className="min-w-0 flex-1 truncate pt-1">
+        <div className="min-w-0 flex-1 truncate pt-0.5">
           <h2
             className="truncate text-[16px] font-semibold leading-tight"
-            style={{ color: GRAY_800 }}
+            style={{ color: headerTextColor }}
           >
             {title}
           </h2>
-          {isGroup && (
-            <p className="truncate text-[10px]" style={{ color: GRAY_500 }}>
+          {isGroup ? (
+            <p className="truncate text-[10px]" style={{ color: headerSubColor }}>
               Anda, {contactName || 'Anna'}, Rey, Warga...
             </p>
+          ) : (
+            enableCustomTicks && headerStatusText && (
+              <p className="truncate text-[11px]" style={{ color: '#00a884' }}>
+                {headerStatusText}
+              </p>
+            )
           )}
         </div>
         <button
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white"
-          style={{ boxShadow: SHADOW_SM }}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+          style={{ backgroundColor: enableDarkMode ? '#2a3942' : 'white', boxShadow: SHADOW_SM }}
         >
           <VideoIcon />
         </button>
         <button
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white"
-          style={{ boxShadow: SHADOW_SM }}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+          style={{ backgroundColor: enableDarkMode ? '#2a3942' : 'white', boxShadow: SHADOW_SM }}
         >
           <PhoneIcon />
         </button>
       </div>
 
       {/* Body */}
-      <div className="flex-1 space-y-2 overflow-hidden px-3 py-1">
+      <div className="flex-1 space-y-2 overflow-hidden px-3 pt-2 pb-2">
         {!messages || messages.length === 0 ? (
           <p
             className="mx-auto mt-10 max-w-[150px] rounded-lg py-1 text-center text-xs"
-            style={{ backgroundColor: 'rgba(255,255,255,0.5)', color: GRAY_500 }}
+            style={{ backgroundColor: enableDarkMode ? '#1f2c34' : 'rgba(255,255,255,0.5)', color: headerSubColor }}
           >
             Belum ada pesan
           </p>
         ) : (
-          messages.map((msg) => <Bubble key={msg.id} message={msg} chatMode={chatMode} />)
+          messages.map((msg) => (
+            <Bubble key={msg.id} message={msg} chatMode={chatMode} isDark={enableDarkMode} />
+          ))
         )}
       </div>
 
       {/* Footer */}
-      <div className="flex items-center gap-3 px-3 py-3" style={{ color: GRAY_700 }}>
+      <div className="flex items-center gap-3 px-3 py-3" style={{ color: headerSubColor, backgroundColor: headerBg }}>
         <PlusIcon />
         <div
-          className="flex flex-1 items-center gap-2 rounded-full bg-white px-4 py-2.5 text-[14px]"
-          style={{ boxShadow: SHADOW_SM }}
+          className="flex flex-1 items-center gap-2 rounded-full px-4 py-2.5 text-[14px]"
+          style={{ backgroundColor: enableDarkMode ? '#2a3942' : 'white', boxShadow: SHADOW_SM }}
         >
           <span aria-hidden style={{ color: GRAY_400 }}>🙂</span>
           <span className="flex-1" style={{ color: GRAY_400 }}>Message</span>

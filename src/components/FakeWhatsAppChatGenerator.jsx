@@ -6,9 +6,11 @@ import MessageEditorList from './MessageEditorList'
 import PhoneMockup from './PhoneMockup'
 import TikTokTemplateConfig from './TikTokTemplateConfig'
 import TikTokTemplateModal from './TikTokTemplateModal'
+import AdvancedSettingsPanel from './AdvancedSettingsPanel'
+import VideoExportModal from './VideoExportModal'
 import { generateChatFromStory } from '../lib/aiGenerator'
 import { newMessage, makeTimeSequence } from '../lib/chatUtils'
-import { paginateMessages } from '../lib/pagination'
+import { paginateMessages, measureMessagesDOM } from '../lib/pagination'
 
 export default function FakeWhatsAppChatGenerator() {
   const [contactName, setContactName] = useState('Anna')
@@ -22,6 +24,17 @@ export default function FakeWhatsAppChatGenerator() {
 
   const [isDownloading, setIsDownloading] = useState(false)
 
+  // Points 1-4 Feature Checkbox Toggles
+  const [enableDarkMode, setEnableDarkMode] = useState(false)
+  const [enableMediaMessages, setEnableMediaMessages] = useState(false)
+  const [enableCustomTicks, setEnableCustomTicks] = useState(false)
+  const [enableCustomStatusBar, setEnableCustomStatusBar] = useState(false)
+
+  // Feature specific states
+  const [headerStatusText, setHeaderStatusText] = useState('')
+  const [statusBarTime, setStatusBarTime] = useState('10:04')
+  const [batteryLevel, setBatteryLevel] = useState('100')
+
   // TikTok Template State
   const [coverTitle, setCoverTitle] = useState('TAMAN WISATA BERHANTU')
   const [coverSubtitle, setCoverSubtitle] = useState('EPISODE ENAM')
@@ -30,8 +43,12 @@ export default function FakeWhatsAppChatGenerator() {
     'Wahana terakhir adalah Bianglala Raksasa yang menjulang tinggi menembus kabut. Mereka harus mencapai kabin tertinggi untuk mengambil kunci gerbang utama yang tergantung di poros paling atas. Angin kencang dan besi yang keropos menjadi rintangan fisik terbesar mereka.',
   )
   const [isTikTokModalOpen, setIsTikTokModalOpen] = useState(false)
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
 
-  const pages = useMemo(() => paginateMessages(messages), [messages])
+  const pages = useMemo(() => {
+    const measured = measureMessagesDOM(messages, chatMode)
+    return paginateMessages(messages, 485, measured)
+  }, [messages, chatMode])
   const pageRefs = useRef({})
 
   const handleGenerateFromStory = async () => {
@@ -75,6 +92,10 @@ export default function FakeWhatsAppChatGenerator() {
 
   const updateMessageSenderName = (id, senderName) => {
     setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, senderName } : m)))
+  }
+
+  const updateMessageField = (id, field, value) => {
+    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, [field]: value } : m)))
   }
 
   const updateMessageTime = (id, time) => {
@@ -201,6 +222,23 @@ export default function FakeWhatsAppChatGenerator() {
             )}
           </div>
 
+          <AdvancedSettingsPanel
+            enableDarkMode={enableDarkMode}
+            setEnableDarkMode={setEnableDarkMode}
+            enableMediaMessages={enableMediaMessages}
+            setEnableMediaMessages={setEnableMediaMessages}
+            enableCustomTicks={enableCustomTicks}
+            setEnableCustomTicks={setEnableCustomTicks}
+            enableCustomStatusBar={enableCustomStatusBar}
+            setEnableCustomStatusBar={setEnableCustomStatusBar}
+            headerStatusText={headerStatusText}
+            setHeaderStatusText={setHeaderStatusText}
+            statusBarTime={statusBarTime}
+            setStatusBarTime={setStatusBarTime}
+            batteryLevel={batteryLevel}
+            setBatteryLevel={setBatteryLevel}
+          />
+
           <TikTokTemplateConfig
             coverTitle={coverTitle}
             setCoverTitle={setCoverTitle}
@@ -226,10 +264,13 @@ export default function FakeWhatsAppChatGenerator() {
             messages={messages}
             onUpdateText={updateMessageText}
             onUpdateSenderName={updateMessageSenderName}
+            onUpdateMessageField={updateMessageField}
             onUpdateTime={updateMessageTime}
             onChangeSender={changeSender}
             onDelete={deleteMessage}
             onAdd={addMessage}
+            enableMediaMessages={enableMediaMessages}
+            enableCustomTicks={enableCustomTicks}
           />
         </div>
 
@@ -250,6 +291,12 @@ export default function FakeWhatsAppChatGenerator() {
                 groupName={groupName}
                 chatMode={chatMode}
                 messages={pageMessages}
+                enableDarkMode={enableDarkMode}
+                enableCustomTicks={enableCustomTicks}
+                enableCustomStatusBar={enableCustomStatusBar}
+                headerStatusText={headerStatusText}
+                statusBarTime={statusBarTime}
+                batteryLevel={batteryLevel}
               />
             </div>
           ))}
@@ -275,6 +322,15 @@ export default function FakeWhatsAppChatGenerator() {
             >
               ✨ Generate Template
             </button>
+
+            <button
+              type="button"
+              onClick={() => setIsVideoModalOpen(true)}
+              disabled={messages.length === 0}
+              className="rounded-lg bg-gradient-to-r from-pink-600 to-rose-600 px-5 py-2.5 text-sm font-medium text-white shadow-md transition hover:from-pink-700 hover:to-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              🎬 Export Video Chat
+            </button>
           </div>
         </div>
       </main>
@@ -290,8 +346,31 @@ export default function FakeWhatsAppChatGenerator() {
         contactName={contactName}
         groupName={groupName}
         chatMode={chatMode}
+        enableDarkMode={enableDarkMode}
+        enableCustomTicks={enableCustomTicks}
+        enableCustomStatusBar={enableCustomStatusBar}
+        headerStatusText={headerStatusText}
+        statusBarTime={statusBarTime}
+        batteryLevel={batteryLevel}
+      />
+
+      <VideoExportModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        messages={messages}
+        contactName={contactName}
+        groupName={groupName}
+        chatMode={chatMode}
+        enableDarkMode={enableDarkMode}
+        enableCustomTicks={enableCustomTicks}
+        enableCustomStatusBar={enableCustomStatusBar}
+        headerStatusText={headerStatusText}
+        statusBarTime={statusBarTime}
+        batteryLevel={batteryLevel}
       />
     </div>
   )
 }
+
+
 
