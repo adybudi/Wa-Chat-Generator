@@ -1,7 +1,7 @@
 // Hybrid DOM-measured pagination parameters
 // Fills phone screens to maximum available height (485px out of 512px max body)
 // while guaranteeing zero cut-offs under the footer bar.
-const PAGE_CAPACITY_PX = 485
+const PAGE_CAPACITY_PX = 445
 const CHARS_PER_LINE_BUBBLE = 26
 const CHARS_PER_LINE_SYSTEM = 38
 
@@ -70,7 +70,9 @@ export function measureMessagesDOM(messages, chatMode = 'personal') {
       ${messages
         .map((msg, idx) => {
           if (msg.sender === 'system') {
-            return `<div id="wa-m-${idx}" style="margin-bottom: 8px; padding: 6px 12px; font-size: 11px; text-align: center; box-sizing: border-box;">${msg.text || ''}</div>`
+            return `<div id="wa-m-${idx}" style="margin-bottom: 8px; display: flex; justify-content: center; padding-left: 24px; padding-right: 24px; padding-top: 4px; padding-bottom: 4px; box-sizing: border-box;">
+              <div style="max-width: 85%; padding-top: 6px; padding-bottom: 6px; padding-left: 12px; padding-right: 12px; font-size: 11px; line-height: 1.375; text-align: center; box-sizing: border-box; word-break: break-word;">${msg.text || ''}</div>
+            </div>`
           }
           const isMe = msg.sender === 'me'
           const speaker = !isMe && isGroup && msg.senderName ? `<div style="font-size: 11px; font-weight: 600; margin-bottom: 2px;">${msg.senderName}</div>` : ''
@@ -80,7 +82,7 @@ export function measureMessagesDOM(messages, chatMode = 'personal') {
               <div style="max-width: 80%; padding: 8px 12px 6px 12px; font-size: 14px; box-sizing: border-box; border-radius: 8px;">
                 ${speaker}
                 ${media}
-                <div style="word-break: break-word; white-space: pre-wrap; padding-right: 8px; line-height: 1.3;">${msg.text || ''}</div>
+                <div style="word-break: break-word; white-space: pre-wrap; padding-right: 8px; line-height: 1.5;">${msg.text || ''}</div>
                 <div style="font-size: 10.5px; margin-top: 4px; text-align: right;">19:00 ✓✓</div>
               </div>
             </div>

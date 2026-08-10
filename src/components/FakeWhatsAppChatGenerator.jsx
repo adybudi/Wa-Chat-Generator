@@ -13,7 +13,7 @@ import { newMessage, makeTimeSequence } from '../lib/chatUtils'
 import { paginateMessages, measureMessagesDOM } from '../lib/pagination'
 
 export default function FakeWhatsAppChatGenerator() {
-  const [contactName, setContactName] = useState('Anna')
+  const [contactName, setContactName] = useState('')
   const [groupName, setGroupName] = useState('Grup Percakapan')
   const [chatMode, setChatMode] = useState('personal') // 'personal' | 'group'
   const [messages, setMessages] = useState([])

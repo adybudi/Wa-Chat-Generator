@@ -282,7 +282,7 @@ const PhoneMockup = forwardRef(function PhoneMockup(
           </h2>
           {isGroup ? (
             <p className="truncate text-[10px]" style={{ color: headerSubColor }}>
-              Anda, {contactName || 'Anna'}, Rey, Warga...
+              Anda, {contactName || ''}
             </p>
           ) : (
             enableCustomTicks && headerStatusText && (
